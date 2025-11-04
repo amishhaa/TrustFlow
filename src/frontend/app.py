@@ -4,129 +4,70 @@ from blockchain.block import TransactionGroup
 from database import db
 
 app = Flask(__name__)
-CORS(app)  # Enables cross-origin requests for frontend integration
+CORS(app)
 
-# Initialize the blockchain model
 group = TransactionGroup()
 
-# [Endpoint] Root: Welcome or health check route
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to AcidTrace Blockchain API!"})
 
-# [Endpoint] Create a new acid source
 @app.route('/create-source', methods=['POST'])
 def create_source():
-    """
-    Request JSON:
-    {
-        "source_code": 1234,
-        "amount": 100
-    }
-    """
     try:
         data = request.get_json()
         source_code = int(data['source_code'])
         amount = int(data['amount'])
 
         group.create_source(source_code, amount)
-
         db.save_source(source_code, amount)
 
-        return jsonify({
-            "message": "Source created successfully.",
-            "source_code": source_code,
-            "amount": amount
-        }), 201
+        return jsonify({"message": "Source Created ✅"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# [Endpoint] Create a transaction between vendors/sources
 @app.route('/create-transaction', methods=['POST'])
 def create_transaction():
-    """
-    Request JSON:
-    {
-        "vendor_code": 1234,
-        "source_code": 1243,
-        "amount": 50,
-        "leaf": false
-    }
-    """
     try:
         data = request.get_json()
         vendor_code = int(data['vendor_code'])
         source_code = int(data['source_code'])
         amount = int(data['amount'])
-        leaf = bool(data.get('leaf', False))  # Optional flag
+        leaf = bool(data.get('leaf', False))
 
         group.create_transaction(vendor_code, source_code, amount, leaf)
-
-        #mongoDb
         db.save_transaction(vendor_code, source_code, amount, leaf)
-        return jsonify({
-            "message": "Transaction recorded successfully.",
-            "from": vendor_code,
-            "to": source_code,
-            "amount": amount,
-            "leaf": leaf
-        }), 201
+
+        return jsonify({"message": "Transaction Recorded ✅"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# [Endpoint] Check if the system is balanced (total acid tracked)
-@app.route('/balance', methods=['GET'])
-def check_balance():
-    """
-    Response:
-    {
-        "status": "Balanced" or "Anamoly"
-    }
-    """
-    status = group.balance()
-    return jsonify({"status": status}), 200
-
-# [Endpoint] Get the full blockchain state
 @app.route('/get-chain', methods=['GET'])
 def get_chain():
-    """
-    Response:
-    {
-        "structure": {...},
-        "sources": {...},
-        "blocks": {
-            "source_code": {
-                "amount": ...,
-                "hash": ...
-            },
-            ...
-        }
-    }
-    """
     try:
         structure = {k: list(v) for k, v in group.structure.items()}
-        sources = dict(group.sources)
+        balances = dict(group.sources)
         blocks = {
-            k: {
-                "amount": v.amount,
-                "hash": v.hash
-            } for k, v in group.block.items()
+            k: {"amount": v.amount, "hash": v.hash}
+            for k, v in group.block.items()
         }
-
-        all_transactions = db.get_all_transactions()  # from MongoDB
+        all_tx = db.get_all_transactions()
 
         return jsonify({
             "structure": structure,
-            "sources": sources,
+            "balances": balances,
             "blocks": blocks,
-            "transactions" : all_transactions
+            "transactions": all_tx
         }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Run the Flask development server
+@app.route('/balance', methods=['GET'])
+def check_balance():
+    return jsonify({"status": group.balance()}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
