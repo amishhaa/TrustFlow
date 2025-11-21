@@ -2,9 +2,34 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import User from "@/lib/userModel";
 
+// Hardcoded maintainers: email: password
+const MAINTAINERS = {
+  "maintainer@gmail.com": "m",
+};
+
 export async function POST(req) {
   try {
     const { email, password } = await req.json();
+
+    // --- CHECK MAINTAINER FIRST ---
+    if (MAINTAINERS[email]) {
+      if (MAINTAINERS[email] !== password) {
+        return NextResponse.json(
+          { success: false, message: "Incorrect password" },
+          { status: 401 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Login successful (Maintainer)",
+        email,
+        status: 0,   // <--- MAINTAINER ROLE
+        balance: 0,
+      });
+    }
+
+    // --- CHECK NORMAL USERS ---
     await connectDB();
 
     const user = await User.findOne({ email });
@@ -16,7 +41,6 @@ export async function POST(req) {
       );
     }
 
-    // In production, hash passwords and compare using bcrypt
     if (user.password !== password) {
       return NextResponse.json(
         { success: false, message: "Incorrect password" },
@@ -24,12 +48,14 @@ export async function POST(req) {
       );
     }
 
-    // Login successful → return success and user info
     return NextResponse.json({
       success: true,
       message: "Login successful",
-      status: user.status, // optional: useful for role-based redirects
+      email: user.email,
+      status: user.status,
+      balance: user.balance
     });
+
   } catch (err) {
     return NextResponse.json(
       { success: false, message: "Error: " + err.message },
@@ -37,4 +63,6 @@ export async function POST(req) {
     );
   }
 }
+
+
 

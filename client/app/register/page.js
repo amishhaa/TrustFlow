@@ -34,6 +34,8 @@ export default function RegisterPage() {
 
     if (res.ok) {
       // Registration successful → redirect to dashboard
+      localStorage.setItem("email", email);
+      localStorage.setItem("role", roleStatusMap[role]);
       router.push("/dashboard");
     } else {
       setStatus(data.message);

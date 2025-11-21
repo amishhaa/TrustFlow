@@ -7,7 +7,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState("");
+  const [statusMsg, setStatusMsg] = useState("");
 
   async function submitForm(e) {
     e.preventDefault();
@@ -21,10 +21,18 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (data.success) {
+      // Save email & role
+      localStorage.setItem("email", email);
+      localStorage.setItem("role", data.status); // <--- IMPORTANT
+
       // Redirect to dashboard
-      router.push("/dashboard");
+      if (data.status === 0) {
+    router.push("/maintainer_dash");
+  } else {
+    router.push("/dashboard");
+  }
     } else {
-      setStatus(data.message);
+      setStatusMsg(data.message);
     }
   }
 
@@ -51,7 +59,14 @@ export default function LoginPage() {
           textAlign: "center",
         }}
       >
-        <h1 style={{ fontSize: "2.5rem", fontWeight: "700", color: "#ff4d4d", marginBottom: "30px" }}>
+        <h1
+          style={{
+            fontSize: "2.5rem",
+            fontWeight: "700",
+            color: "#ff4d4d",
+            marginBottom: "30px",
+          }}
+        >
           Login
         </h1>
 
@@ -118,10 +133,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {status && (
-          <p style={{ marginTop: "20px", color: "#333", fontWeight: "500" }}>{status}</p>
+        {statusMsg && (
+          <p style={{ marginTop: "20px", color: "#333", fontWeight: "500" }}>{statusMsg}</p>
         )}
       </div>
     </div>
   );
 }
+

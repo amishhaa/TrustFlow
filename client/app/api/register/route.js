@@ -9,13 +9,24 @@ export async function POST(req) {
 
     const exists = await User.findOne({ email });
     if (exists) {
-      return NextResponse.json({ message: "User already exists" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "User already exists" },
+        { status: 400 }
+      );
     }
 
-    await User.create({ email, password, status }); // ✅ pass status
+    const user = await User.create({ email, password, status });
 
-    return NextResponse.json({ message: "Registered successfully" });
+    return NextResponse.json({
+      success: true,
+      message: "Registered successfully",
+      email: user.email,
+      status: user.status,
+    });
   } catch (err) {
-    return NextResponse.json({ message: "Error: " + err.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Error: " + err.message },
+      { status: 500 }
+    );
   }
 }
