@@ -1,10 +1,13 @@
-from flask import Flask, jsonify
+from http.server import BaseHTTPRequestHandler
+import json
 
-app = Flask(__name__)
-
-@app.route("/api/hello")
-def hello():
-    return jsonify({"message": "Hello from Flask on Vercel with HTTPS!"})
-
-def handler(event, context):
-    return app(event, context)
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/api/hello":
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"message": "Hello from serverless Flask!"}).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
