@@ -219,7 +219,7 @@ if (role === "2") {
           <h2 style={{ fontSize: "1.5rem", fontWeight: "600" }}>Current Balance</h2>
 
           <p style={{ fontSize: "1rem", marginTop: "10px" }}>
-            {balance === null ? "Loading..." : <b>₹ {balance}</b>}
+            {balance === null ? "Loading..." : <b>{balance}</b>}
           </p>
 
           <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "10px" }}>
