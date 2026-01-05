@@ -6,12 +6,10 @@ import Link from "next/link";
 export default function Dashboard() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState(""); // merchant email
+  const [email, setEmail] = useState(""); 
   const [balance, setBalance] = useState(null);
+  const [receiverEmail, setReceiverEmail] = useState(""); 
 
-  const [receiverEmail, setReceiverEmail] = useState(""); // FIX 1
-
-  // Load email from localStorage
   useEffect(() => {
     const savedEmail = localStorage.getItem("email");
     if (savedEmail) {
@@ -22,12 +20,10 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Fetch user's current balance
   async function fetchBalance(email) {
     try {
       const res = await fetch(`/api/getBalance?email=${email}`);
       const data = await res.json();
-
       if (res.ok) {
         setBalance(data.balance);
       } else {
@@ -39,16 +35,12 @@ export default function Dashboard() {
     }
   }
 
-  // ------- TRANSFER MONEY FUNCTION (FIXED) -------
   async function transferBalance() {
     if (!receiverEmail || !amount) {
-      alert("Enter receiver email and amount");
+      alert("Enter receiver email and amount in litres");
       return;
     }
-
     const amt = Number(amount);
-
-    // 1. Fetch receiver current balance
     const receiverRes = await fetch(`/api/getBalance?email=${receiverEmail}`);
     const receiverData = await receiverRes.json();
 
@@ -59,13 +51,11 @@ export default function Dashboard() {
 
     const receiverBalance = receiverData.balance;
 
-    // 2. Check merchant has enough money
     if (balance < amt) {
-      alert("Not enough balance");
+      alert("Insufficient stock for this transfer");
       return;
     }
 
-    // 3. Update receiver balance (+ amt)
     const updateReceiver = await fetch("/api/setBalance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,7 +65,6 @@ export default function Dashboard() {
       })
     });
 
-    // 4. Update merchant balance (- amt)
     const updateMerchant = await fetch("/api/setBalance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -87,34 +76,28 @@ export default function Dashboard() {
 
     if (updateMerchant.ok && updateReceiver.ok) {
       alert("Transfer successful");
-      setBalance(balance - amt); // update UI
+      setBalance(balance - amt); 
     } else {
       alert("Transfer failed");
     }
   }
 
-  // ------- SET BALANCE FUNCTION -------
   async function handleSetBalance() {
-    
     if (!amount || isNaN(amount)) {
-      alert("Enter a valid balance number");
+      alert("Enter a valid number of litres");
       return;
     }
-
     if (!email) {
       alert("Email missing. Login again.");
       return;
     }
-
     setLoading(true);
-
     try {
       const role = localStorage.getItem("role");
-
-if (role === "2") {  
-  alert("Retailers are not allowed to add balance.");
-  throw new Error("Not allowed");
-}
+      if (role === "2") {  
+        alert("Retailers are not allowed to update inventory.");
+        throw new Error("Not allowed");
+      }
       const res = await fetch("/api/setBalance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,193 +106,120 @@ if (role === "2") {
           balance: Number(amount),
         }),
       });
-
       const data = await res.json();
       alert(data.message);
-
       if (res.ok) {
         setBalance(data.balance);
       }
     } catch (err) {
       console.error(err);
-      alert("Error updating balance");
+      alert("Error updating inventory");
     }
-
     setLoading(false);
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        fontFamily: "'Inter', sans-serif",
-        backgroundColor: "#f7f7f7",
-        padding: "20px",
-      }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "20px 40px",
-          backgroundColor: "#ff4d4d",
-          color: "#fff",
-          borderRadius: "12px",
-          marginBottom: "40px",
-        }}
-      >
-        <h1 style={{ fontSize: "2rem", fontWeight: "700" }}>AcidTrace Dashboard</h1>
-        <nav style={{ display: "flex", gap: "20px" }}>
-          <Link href="/">
-            <button
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#fff",
-                color: "#ff4d4d",
-                fontWeight: "600",
-                borderRadius: "8px",
-                cursor: "pointer",
-                border: "none",
-              }}
-            >
-              Home
-            </button>
-          </Link>
-
-          <button
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#fff",
-              color: "#ff4d4d",
-              fontWeight: "600",
-              borderRadius: "8px",
-              cursor: "pointer",
-              border: "none",
-            }}
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = "/";
-            }}
-          >
-            Logout
-          </button>
+    <div style={containerStyle}>
+      {/* Sidebar Navigation */}
+      <aside style={sidebarStyle}>
+        <div style={logoStyle}>Acid<span>Trace</span></div>
+        <nav style={navLinksStyle}>
+          {/* Dashboard and Settings removed as requested */}
+          <div style={linkItemActiveStyle}>Transactions</div>
         </nav>
-      </header>
-
-      {/* Main */}
-      <main
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "20px",
-        }}
-      >
-        {/* Balance Card */}
-        <div
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "12px",
-            padding: "20px",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-            textAlign: "center",
-          }}
+        <button 
+          onClick={() => { localStorage.clear(); window.location.href = "/"; }}
+          style={logoutButtonStyle}
         >
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "600" }}>Current Balance</h2>
+          Sign Out
+        </button>
+      </aside>
 
-          <p style={{ fontSize: "1rem", marginTop: "10px" }}>
-            {balance === null ? "Loading..." : <b>{balance}</b>}
-          </p>
+      {/* Main Content */}
+      <main style={mainContentStyle}>
+        <header style={topHeaderStyle}>
+          <div>
+            <h2 style={{ margin: 0 }}>Inventory Management</h2>
+            <p style={{ color: "#888", fontSize: "14px" }}>Logged in as: <b>{email}</b></p>
+          </div>
+          <div style={statusBadgeStyle}>System Online</div>
+        </header>
 
-          <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "10px" }}>
-            Logged in as <b>{email}</b>
-          </p>
-        </div>
+        <section style={statsGridStyle}>
+          {/* Volume Card */}
+          <div style={balanceCardStyle}>
+            <p style={cardLabelStyle}>Current Stock Level</p>
+            <h1 style={balanceValueStyle}>
+              {balance === null ? "..." : `${balance.toLocaleString()} L`}
+            </h1>
+            <div style={cardFooterStyle}>Verified Volume</div>
+          </div>
 
-        {/* Add + Transfer Balance Card */}
-        <div
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "12px",
-            padding: "20px",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-            textAlign: "center",
-          }}
-        >
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "600", marginBottom: "10px" }}>
-            Balance Actions
-          </h2>
+          {/* Transfer Control Card */}
+          <div style={actionCardStyle}>
+            <h3 style={{ marginTop: 0, marginBottom: "20px" }}>Logistics Control</h3>
+            
+            <div style={inputGroupStyle}>
+              <label style={labelStyle}>Volume (Litres)</label>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                style={modernInputStyle}
+              />
+            </div>
 
-          {/* Set Balance */}
-          <input
-            type="number"
-            placeholder="Enter new balance"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              marginTop: "10px",
-              fontSize: "1rem",
-            }}
-          />
+            <div style={buttonRowStyle}>
+              <button onClick={handleSetBalance} style={setBalanceButtonStyle}>
+                {loading ? "Syncing..." : "Update Stock"}
+              </button>
+            </div>
 
-          <button
-            onClick={handleSetBalance}
-            style={{
-              marginTop: "15px",
-              padding: "10px 16px",
-              backgroundColor: "#4CAF50",
-              color: "#fff",
-              fontWeight: "600",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              width: "100%",
-            }}
-          >
-            {loading ? "Updating..." : "Set Balance"}
-          </button>
+            <hr style={dividerStyle} />
 
-          {/* Transfer Section */}
-          <input
-            type="text"
-            placeholder="Receiver Email"
-            value={receiverEmail}
-            onChange={(e) => setReceiverEmail(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              marginTop: "20px",
-              fontSize: "1rem",
-            }}
-          />
+            <div style={inputGroupStyle}>
+              <label style={labelStyle}>Recipient Identifier (Email)</label>
+              <input
+                type="text"
+                placeholder="retailer@acidtrace.io"
+                value={receiverEmail}
+                onChange={(e) => setReceiverEmail(e.target.value)}
+                style={modernInputStyle}
+              />
+            </div>
 
-          <button
-            onClick={transferBalance}
-            style={{
-              marginTop: "15px",
-              padding: "10px 16px",
-              backgroundColor: "#2196F3",
-              color: "#fff",
-              fontWeight: "600",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              width: "100%",
-            }}
-          >
-            Transfer
-          </button>
-        </div>
+            <button onClick={transferBalance} style={transferButtonStyle}>
+              Execute Transfer
+            </button>
+          </div>
+        </section>
       </main>
     </div>
   );
 }
 
-
+// --- Styles ---
+const containerStyle = { display: "flex", minHeight: "100vh", backgroundColor: "#0a0a0b", color: "#fff", fontFamily: "'Inter', sans-serif" };
+const sidebarStyle = { width: "260px", backgroundColor: "#111114", padding: "40px 20px", display: "flex", flexDirection: "column", borderRight: "1px solid #222" };
+const logoStyle = { fontSize: "24px", fontWeight: "800", letterSpacing: "-1px", marginBottom: "50px", color: "#fff", textAlign: "center" };
+const navLinksStyle = { display: "flex", flexDirection: "column", gap: "10px", flexGrow: 1 };
+const linkItemStyle = { padding: "12px 16px", borderRadius: "8px", color: "#666", textDecoration: "none", cursor: "pointer", transition: "0.2s" };
+const linkItemActiveStyle = { ...linkItemStyle, backgroundColor: "#1a1a1e", color: "#00ff88" };
+const logoutButtonStyle = { padding: "12px", backgroundColor: "transparent", border: "1px solid #333", color: "#ff4d4d", borderRadius: "8px", cursor: "pointer", fontWeight: "600" };
+const mainContentStyle = { flexGrow: 1, padding: "40px", overflowY: "auto" };
+const topHeaderStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" };
+const statusBadgeStyle = { padding: "6px 12px", backgroundColor: "rgba(0, 255, 136, 0.1)", color: "#00ff88", borderRadius: "20px", fontSize: "12px", fontWeight: "bold", border: "1px solid rgba(0, 255, 136, 0.2)" };
+const statsGridStyle = { display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "30px" };
+const balanceCardStyle = { background: "linear-gradient(135deg, #1a1a1e 0%, #0a0a0b 100%)", padding: "40px", borderRadius: "24px", border: "1px solid #222", display: "flex", flexDirection: "column", justifyContent: "center", height: "fit-content" };
+const cardLabelStyle = { color: "#888", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px", margin: 0 };
+const balanceValueStyle = { fontSize: "48px", fontWeight: "800", margin: "15px 0", color: "#fff" };
+const cardFooterStyle = { fontSize: "12px", color: "#00ff88", fontWeight: "bold" };
+const actionCardStyle = { backgroundColor: "#111114", padding: "30px", borderRadius: "24px", border: "1px solid #222" };
+const inputGroupStyle = { marginBottom: "20px" };
+const labelStyle = { display: "block", fontSize: "12px", color: "#666", marginBottom: "8px", fontWeight: "600" };
+const modernInputStyle = { width: "100%", padding: "14px", backgroundColor: "#1a1a1e", border: "1px solid #333", borderRadius: "12px", color: "#fff", fontSize: "16px", outline: "none", boxSizing: "border-box" };
+const setBalanceButtonStyle = { width: "100%", padding: "14px", backgroundColor: "#fff", color: "#000", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer" };
+const transferButtonStyle = { width: "100%", padding: "14px", backgroundColor: "#00ff88", color: "#000", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer" };
+const dividerStyle = { border: "0", borderTop: "1px solid #222", margin: "30px 0" };
+const buttonRowStyle = { display: "flex", gap: "10px" };

@@ -21,123 +21,174 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (data.success) {
-      // Save email & role
       localStorage.setItem("email", email);
-      localStorage.setItem("role", data.status); // <--- IMPORTANT
+      localStorage.setItem("role", data.status);
 
-      // Redirect to dashboard
       if (data.status === 0) {
-    router.push("/maintainer_dash");
-  } else {
-    router.push("/dashboard");
-  }
+        router.push("/maintainer_dash");
+      } else {
+        router.push("/dashboard");
+      }
     } else {
       setStatusMsg(data.message);
     }
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#fff",
-        fontFamily: "'Inter', sans-serif",
-        padding: "0 20px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "400px",
-          width: "100%",
-          padding: "40px",
-          borderRadius: "12px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-          backgroundColor: "#fff",
-          textAlign: "center",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "2.5rem",
-            fontWeight: "700",
-            color: "#ff4d4d",
-            marginBottom: "30px",
-          }}
-        >
-          Login
-        </h1>
+    <div style={containerStyle}>
+      <div style={loginCardStyle}>
+        <div style={logoStyle}>Acid<span>Trace</span></div>
+        <h1 style={titleStyle}>System Access</h1>
+        <br></br>
+        <form onSubmit={submitForm} style={formStyle}>
+          <div style={inputGroupStyle}>
+            <label style={labelStyle}>Authorized Email</label>
+            <input
+              type="email"
+              placeholder="operator@acidtrace"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              style={modernInputStyle}
+            />
+          </div>
 
-        <form onSubmit={submitForm} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            style={{
-              padding: "12px 15px",
-              fontSize: "1rem",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              outline: "none",
-              transition: "border-color 0.2s",
-            }}
-            onFocus={e => (e.target.style.borderColor = "#ff4d4d")}
-            onBlur={e => (e.target.style.borderColor = "#ccc")}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            style={{
-              padding: "12px 15px",
-              fontSize: "1rem",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              outline: "none",
-              transition: "border-color 0.2s",
-            }}
-            onFocus={e => (e.target.style.borderColor = "#ff4d4d")}
-            onBlur={e => (e.target.style.borderColor = "#ccc")}
-          />
+          <div style={inputGroupStyle}>
+            <label style={labelStyle}>Security Credential</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              style={modernInputStyle}
+            />
+          </div>
 
           <button
             type="submit"
-            style={{
-              padding: "12px 0",
-              backgroundColor: "#ff4d4d",
-              color: "#fff",
-              fontWeight: "600",
-              fontSize: "1rem",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "background-color 0.2s, transform 0.2s",
-            }}
+            style={loginButtonStyle}
             onMouseEnter={e => {
-              e.target.style.backgroundColor = "#e04343";
-              e.target.style.transform = "scale(1.03)";
+              e.target.style.filter = "brightness(1.1)";
+              e.target.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={e => {
-              e.target.style.backgroundColor = "#ff4d4d";
-              e.target.style.transform = "scale(1)";
+              e.target.style.filter = "brightness(1)";
+              e.target.style.transform = "translateY(0)";
             }}
           >
-            Login
+            Login 
           </button>
         </form>
 
         {statusMsg && (
-          <p style={{ marginTop: "20px", color: "#333", fontWeight: "500" }}>{statusMsg}</p>
+          <div style={errorBadgeStyle}>
+            {statusMsg}
+          </div>
         )}
       </div>
     </div>
   );
 }
 
+// --- Styles ---
+
+const containerStyle = {
+  display: "flex",
+  minHeight: "100vh",
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#0a0a0b", // Deep dark background
+  color: "#fff",
+  fontFamily: "'Inter', sans-serif",
+  padding: "20px",
+};
+
+const loginCardStyle = {
+  maxWidth: "420px",
+  width: "100%",
+  padding: "50px 40px",
+  borderRadius: "24px",
+  backgroundColor: "#111114",
+  border: "1px solid #1a1a1e",
+  textAlign: "center",
+};
+
+const logoStyle = {
+  fontSize: "28px",
+  fontWeight: "800",
+  letterSpacing: "-1px",
+  marginBottom: "10px",
+  color: "#fff",
+};
+
+const titleStyle = {
+  fontSize: "22px",
+  fontWeight: "700",
+  marginBottom: "8px",
+  color: "#fff",
+};
+
+const subtitleStyle = {
+  fontSize: "14px",
+  color: "#666",
+  marginBottom: "40px",
+};
+
+const formStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "24px",
+};
+
+const inputGroupStyle = {
+  textAlign: "left",
+};
+
+const labelStyle = {
+  display: "block",
+  fontSize: "12px",
+  color: "#888",
+  marginBottom: "8px",
+  fontWeight: "600",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+};
+
+const modernInputStyle = {
+  width: "100%",
+  padding: "14px",
+  backgroundColor: "#0a0a0b",
+  border: "1px solid #1a1a1e",
+  borderRadius: "12px",
+  color: "#fff",
+  fontSize: "16px",
+  outline: "none",
+  boxSizing: "border-box",
+  transition: "border-color 0.2s",
+};
+
+const loginButtonStyle = {
+  width: "100%",
+  padding: "16px",
+  backgroundColor: "#00ff88", // Acid Green
+  color: "#000",
+  fontWeight: "700",
+  fontSize: "16px",
+  border: "none",
+  borderRadius: "12px",
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+  marginTop: "10px",
+};
+
+const errorBadgeStyle = {
+  marginTop: "24px",
+  padding: "12px",
+  backgroundColor: "rgba(255, 77, 77, 0.1)",
+  color: "#ff4d4d",
+  borderRadius: "8px",
+  fontSize: "14px",
+  fontWeight: "500",
+  border: "1px solid rgba(255, 77, 77, 0.2)",
+};
