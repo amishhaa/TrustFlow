@@ -140,7 +140,7 @@ export default function MaintainerDashboard() {
                 >
                   <td style={td}>{u.email}</td>
                   <td style={td}>{roleNames[u.status]}</td>
-                  <td style={td}>₹ {u.balance}</td>
+                  <td style={td}>{u.balance} L</td>
                 </tr>
               ))}
             </tbody>
